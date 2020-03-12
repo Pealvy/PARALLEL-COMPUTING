@@ -1,0 +1,40 @@
+#include <iostream>
+#include <chrono>
+#include <time.h>
+#include "mpi.h"
+
+using namespace std;
+using namespace std::chrono;
+
+int main(int argc, char *argv[]){
+
+    srand(time(0));
+//Declaration of variables 
+    int rank, size, sum = 10;
+    MPI::Status status;
+
+//Parallel program starts here
+    MPI::Init(argc, argv);
+        size = MPI::COMM_WORLD.Get_size();
+        rank = MPI::COMM_WORLD.Get_rank();
+        if(rank != 0)
+        {
+            MPI_Recv(&sum, 1, MPI::INT, rank-1, 0, MPI::COMM_WORLD, MPI_STATUS_IGNORE);
+            cout<<"Process "<<rank - 1<<" Received "<<sum <<" from process " << rank<< endl;
+
+        }
+        else{
+            sum += 2;
+        }
+        MPI_Send(&sum, 1, MPI::INT, (rank+1)%size, 0, MPI::COMM_WORLD);
+        if(rank==0)
+        { 
+            MPI_Recv(&sum, 1, MPI::INT, size-1, 0, MPI::COMM_WORLD, MPI_STATUS_IGNORE);
+            cout<<"Process "<<rank - 1<<" Received "<<sum <<" from process " <<size - 1<< endl;
+
+        }
+
+    MPI::Finalize();
+
+
+    return 0;
